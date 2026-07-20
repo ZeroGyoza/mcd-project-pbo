@@ -48,16 +48,16 @@ public class KiosView extends JFrame {
         loadMenuData();
         updateCartSidebar();
 
-        // Responsive Grid Adjuster saat Window di-resize
+        // Mengatur ulang jumlah kolom grid saat layar di-resize / full screen
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                adjustGridColumns();
+                updateGridColumns();
             }
         });
     }
 
-    // 1. HEADER (Bagian Atas - Logo McD Rapi di Tengah)
+    // 1. HEADER
     private void initHeader() {
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(Color.WHITE);
@@ -112,7 +112,6 @@ public class KiosView extends JFrame {
         sidebar.add(separator);
         sidebar.add(Box.createRigidArea(new Dimension(0, 12)));
 
-        // Daftar nama kategori dan file ikon
         String[][] kategoriData = {
             {"All", "all.png"},
             {"Burger", "burger.png"},
@@ -144,7 +143,6 @@ public class KiosView extends JFrame {
             btn.setVerticalTextPosition(SwingConstants.CENTER);
             btn.setIconTextGap(8);
 
-            // Dual-Layer Loader untuk Ikon Kategori
             try {
                 URL imgURL = getClass().getResource("/assets/images/" + fileGambar);
                 if (imgURL != null) {
@@ -152,7 +150,6 @@ public class KiosView extends JFrame {
                     Image img = icon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
                     btn.setIcon(new ImageIcon(img));
                 } else {
-                    // Direct File Path Fallback
                     File localFile = new File("app/src/main/resources/assets/images/" + fileGambar);
                     if (!localFile.exists()) {
                         localFile = new File("src/main/resources/assets/images/" + fileGambar);
@@ -179,13 +176,18 @@ public class KiosView extends JFrame {
         add(sidebarScroll, BorderLayout.WEST);
     }
 
-    // 3. AREA TENGAH: Grid Menu (Responsif Layout)
+    // 3. AREA TENGAH: Grid Menu (Teratur, Tidak Melar & Tidak Terus ke Samping)
     private void initMenuGrid() {
-        panelGridMenu = new JPanel(new GridLayout(0, 3, 15, 15)); 
+        panelGridMenu = new JPanel(new GridLayout(0, 3, 20, 20)); // Default 3 Kolom
         panelGridMenu.setBackground(BG_LIGHT);
 
-        scrollMenu = new JScrollPane(panelGridMenu);
-        scrollMenu.setBorder(new EmptyBorder(15, 10, 15, 10));
+        // Wrapper Panel untuk menahan agar grid berada di pojok kiri atas dan tidak ditarik vertikal
+        JPanel topAlignWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        topAlignWrapper.setBackground(BG_LIGHT);
+        topAlignWrapper.add(panelGridMenu);
+
+        scrollMenu = new JScrollPane(topAlignWrapper);
+        scrollMenu.setBorder(new EmptyBorder(15, 15, 15, 15));
         scrollMenu.setBackground(BG_LIGHT);
         scrollMenu.getViewport().setBackground(BG_LIGHT);
         scrollMenu.getVerticalScrollBar().setUnitIncrement(16); 
@@ -193,25 +195,27 @@ public class KiosView extends JFrame {
         add(scrollMenu, BorderLayout.CENTER);
     }
 
-    private void adjustGridColumns() {
+    // Mengalkulasi jumlah kolom berdasarkan lebar viewport agar rapi dan tidak melar
+    private void updateGridColumns() {
         if (scrollMenu == null || panelGridMenu == null) return;
-        int viewWidth = scrollMenu.getViewport().getWidth();
+
+        int viewWidth = scrollMenu.getViewport().getWidth() - 30; // Kurangi padding
         if (viewWidth <= 0) return;
 
-        int cardMinWidth = 220;
-        int columns = Math.max(1, viewWidth / cardMinWidth);
+        // Setiap kartu ukurannya fixed 220px + gap 20px = 240px
+        int targetCardWidth = 240; 
+        int cols = Math.max(1, viewWidth / targetCardWidth);
 
-        GridLayout layout = (GridLayout) panelGridMenu.getLayout();
-        if (layout.getColumns() != columns) {
-            layout.setColumns(columns);
-            panelGridMenu.revalidate();
-        }
+        // Atur layout grid sesuai kolom yang muat
+        panelGridMenu.setLayout(new GridLayout(0, cols, 20, 20));
+        panelGridMenu.revalidate();
+        panelGridMenu.repaint();
     }
 
     // 4. SIDEBAR KANAN: Keranjang Belanja
     private void initSidebarRightCart() {
         JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.setPreferredSize(new Dimension(320, 0));
+        rightPanel.setPreferredSize(new Dimension(300, 0));
         rightPanel.setBackground(Color.WHITE);
         rightPanel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, new Color(230, 230, 230)));
 
@@ -271,103 +275,106 @@ public class KiosView extends JFrame {
         add(rightPanel, BorderLayout.EAST);
     }
 
-    // 5. LOAD MENU DATA (Dual-Layer Resource & File Loader)
+    // 5. LOAD MENU DATA
     private void loadMenuData() {
         panelGridMenu.removeAll();
         List<Menu> listMenu = controller.getMenuBySubCategory(kategoriAktif);
 
         for (Menu m : listMenu) {
-            JPanel card = new JPanel(new BorderLayout(8, 8));
+            // Container Kartu Ukuran Terkunci Rapi (220 x 260 px)
+            JPanel card = new JPanel(new BorderLayout(0, 5));
             card.setBackground(Color.WHITE);
+            
+            Dimension cardSize = new Dimension(220, 260);
+            card.setPreferredSize(cardSize);
+            card.setMinimumSize(cardSize);
+            card.setMaximumSize(cardSize);
+            
             card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(230, 230, 230), 1, true),
-                BorderFactory.createEmptyBorder(12, 10, 12, 10)
+                BorderFactory.createLineBorder(new Color(225, 225, 225), 1, true),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
             ));
 
-            // Container Gambar Menu
-            JPanel imagePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+            // A. CONTAINER GAMBAR (100x100)
+            JPanel imagePanel = new JPanel(new GridBagLayout());
             imagePanel.setBackground(Color.WHITE);
-            JLabel labelGambar = new JLabel("", JLabel.CENTER);
+            imagePanel.setPreferredSize(new Dimension(100, 100));
 
-            // Sanitasi String Nama Gambar dari Database
+            JLabel labelGambar = new JLabel("", JLabel.CENTER);
+            labelGambar.setPreferredSize(new Dimension(100, 100));
+
             String imgFileName = m.getImageUrl();
             if (imgFileName != null) {
-                imgFileName = imgFileName.trim().replace(" ", "_").replace(".webp", ".png");
+                imgFileName = imgFileName.trim().replace(" ", "_");
+                if (imgFileName.endsWith(".webp")) {
+                    imgFileName = imgFileName.replace(".webp", ".png");
+                }
             }
 
             boolean imageLoaded = false;
-
             try {
-                // OP SI 1: Coba muat via Classpath (Standard Jar/Bin execution)
                 URL imgURL = getClass().getResource("/assets/images/" + imgFileName);
-                
                 if (imgURL != null) {
                     ImageIcon icon = new ImageIcon(imgURL);
-                    Image img = icon.getImage();
-                    Image resizedImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                    Image resizedImg = icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
                     labelGambar.setIcon(new ImageIcon(resizedImg));
                     imageLoaded = true;
                 } else {
-                    // OPSI 2: Fallback ke Direct Path jika belum ter-compile ke bin
                     File fileDirect = new File("app/src/main/resources/assets/images/" + imgFileName);
                     if (!fileDirect.exists()) {
                         fileDirect = new File("src/main/resources/assets/images/" + imgFileName);
                     }
-
                     if (fileDirect.exists()) {
                         ImageIcon icon = new ImageIcon(fileDirect.getAbsolutePath());
-                        Image img = icon.getImage();
-                        Image resizedImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                        Image resizedImg = icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
                         labelGambar.setIcon(new ImageIcon(resizedImg));
                         imageLoaded = true;
-                    } else {
-                        System.out.println("[FAIL] File gambar tidak ditemukan: " + fileDirect.getAbsolutePath());
                     }
                 }
             } catch (Exception e) {
                 imageLoaded = false;
             }
 
-            // Jika kedua metode di atas gagal, tampilkan teks placeholder
             if (!imageLoaded) {
                 labelGambar.setText("[ No Image ]");
-                labelGambar.setPreferredSize(new Dimension(100, 100));
-                labelGambar.setHorizontalAlignment(SwingConstants.CENTER);
-                labelGambar.setForeground(Color.GRAY);
+                labelGambar.setFont(new Font("Segoe UI", Font.BOLD, 10));
+                labelGambar.setForeground(Color.LIGHT_GRAY);
             }
 
             imagePanel.add(labelGambar);
             card.add(imagePanel, BorderLayout.NORTH);
 
-            // Informasi Nama & Harga
-            JPanel infoPanel = new JPanel(new GridLayout(2, 1, 3, 3));
+            // B. CONTAINER TEKS NAMA & HARGA (Tinggi 50px)
+            JPanel infoPanel = new JPanel(new GridLayout(2, 1, 2, 2));
             infoPanel.setBackground(Color.WHITE);
-            JLabel labelNama = new JLabel(m.getName(), JLabel.CENTER);
-            labelNama.setFont(new Font("Segoe UI", Font.BOLD, 13));
+            infoPanel.setPreferredSize(new Dimension(200, 50)); 
+
+            JLabel labelNama = new JLabel("<html><div style='text-align: center;'>" + m.getName() + "</div></html>", JLabel.CENTER);
+            labelNama.setFont(new Font("Segoe UI", Font.BOLD, 12));
             labelNama.setForeground(TEXT_DARK);
-            
+
             JLabel labelHarga = new JLabel("$ " + String.format("%.2f", m.getPrice()), JLabel.CENTER);
             labelHarga.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            labelHarga.setForeground(MCD_RED); 
+            labelHarga.setForeground(MCD_RED);
 
             infoPanel.add(labelNama);
             infoPanel.add(labelHarga);
             card.add(infoPanel, BorderLayout.CENTER);
 
-            // Tombol Kuantitas & Add
-            JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 2));
+            // C. CONTAINER TOMBOL (- 1 + Add)
+            JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 0));
             controlPanel.setBackground(Color.WHITE);
-            
+
             JLabel labelQty = new JLabel("1", JLabel.CENTER);
-            labelQty.setFont(new Font("Segoe UI", Font.BOLD, 13));
+            labelQty.setFont(new Font("Segoe UI", Font.BOLD, 12));
             labelQty.setPreferredSize(new Dimension(20, 28));
 
             JButton btnMin = new JButton("-");
             btnMin.setPreferredSize(new Dimension(30, 28));
-            btnMin.setMargin(new Insets(0, 0, 0, 0));
-            btnMin.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnMin.setFont(new Font("Segoe UI", Font.BOLD, 12));
             btnMin.setBackground(BG_LIGHT);
             btnMin.setFocusPainted(false);
+            btnMin.setBorder(BorderFactory.createLineBorder(new Color(210, 210, 210)));
             btnMin.addActionListener(e -> {
                 int q = Integer.parseInt(labelQty.getText());
                 if (q > 1) labelQty.setText(String.valueOf(q - 1));
@@ -375,10 +382,10 @@ public class KiosView extends JFrame {
 
             JButton btnPlus = new JButton("+");
             btnPlus.setPreferredSize(new Dimension(30, 28));
-            btnPlus.setMargin(new Insets(0, 0, 0, 0));
-            btnPlus.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btnPlus.setFont(new Font("Segoe UI", Font.BOLD, 12));
             btnPlus.setBackground(BG_LIGHT);
             btnPlus.setFocusPainted(false);
+            btnPlus.setBorder(BorderFactory.createLineBorder(new Color(210, 210, 210)));
             btnPlus.addActionListener(e -> {
                 int q = Integer.parseInt(labelQty.getText());
                 labelQty.setText(String.valueOf(q + 1));
@@ -386,18 +393,17 @@ public class KiosView extends JFrame {
 
             JButton btnAdd = new JButton("Add");
             btnAdd.setPreferredSize(new Dimension(55, 28));
-            btnAdd.setMargin(new Insets(0, 0, 0, 0));
-            btnAdd.setBackground(MCD_YELLOW); 
+            btnAdd.setBackground(MCD_YELLOW);
             btnAdd.setForeground(TEXT_DARK);
             btnAdd.setFont(new Font("Segoe UI", Font.BOLD, 12));
             btnAdd.setFocusPainted(false);
             btnAdd.setBorder(BorderFactory.createLineBorder(new Color(240, 180, 20)));
-            
+
             btnAdd.addActionListener(e -> {
                 int qty = Integer.parseInt(labelQty.getText());
                 controller.addToCart(m, qty);
-                updateCartSidebar(); 
-                labelQty.setText("1"); 
+                updateCartSidebar();
+                labelQty.setText("1");
             });
 
             controlPanel.add(btnMin);
@@ -406,12 +412,11 @@ public class KiosView extends JFrame {
             controlPanel.add(btnAdd);
 
             card.add(controlPanel, BorderLayout.SOUTH);
+
             panelGridMenu.add(card);
         }
 
-        adjustGridColumns();
-        panelGridMenu.revalidate();
-        panelGridMenu.repaint();
+        updateGridColumns();
     }
 
     // 6. UPDATE KERANJANG REAL-TIME
@@ -422,7 +427,7 @@ public class KiosView extends JFrame {
         for (CartItem item : items) {
             JPanel itemRow = new JPanel(new BorderLayout(10, 5));
             itemRow.setBackground(Color.WHITE);
-            itemRow.setMaximumSize(new Dimension(290, 45));
+            itemRow.setMaximumSize(new Dimension(280, 45));
             itemRow.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(240, 240, 240)),
                 BorderFactory.createEmptyBorder(6, 5, 6, 5)
