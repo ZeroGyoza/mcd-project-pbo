@@ -9,6 +9,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.io.File;
 import java.net.URL;
 import java.util.List;
 
@@ -73,7 +74,7 @@ public class KiosView extends JFrame {
         add(header, BorderLayout.NORTH);
     }
 
-    // 2. SIDEBAR KIRI: Kategori Menu (Rapi di Tengah + Penanganan Gambar Kosong)
+    // 2. SIDEBAR KIRI: Kategori Menu
     private void initSidebarKategori() {
         JPanel sidebar = new JPanel();
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
@@ -138,24 +139,29 @@ public class KiosView extends JFrame {
             btn.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1));
             btn.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-            // Pengaturan simetris (Gambar & Teks sejajar di tengah)
             btn.setHorizontalAlignment(SwingConstants.CENTER);
             btn.setHorizontalTextPosition(SwingConstants.RIGHT); 
             btn.setVerticalTextPosition(SwingConstants.CENTER);
             btn.setIconTextGap(8);
 
-            // ========================================================
-            // TRY-CATCH LOAD GAMBAR DENGAN COMMENT IF NOT FOUND
-            // ========================================================
+            // Dual-Layer Loader untuk Ikon Kategori
             try {
-                URL imgURL = getClass().getResource("/images/" + fileGambar);
+                URL imgURL = getClass().getResource("/assets/images/" + fileGambar);
                 if (imgURL != null) {
                     ImageIcon icon = new ImageIcon(imgURL);
                     Image img = icon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
                     btn.setIcon(new ImageIcon(img));
                 } else {
-                    // COMMENT / LOGGING DI TERMINAL JIKA GAMBAR BELUM ADA
-                    System.out.println("[INFO] Gambar ikon belum ada: src/images/" + fileGambar + " (Tombol tetap tampil tanpa ikon)");
+                    // Direct File Path Fallback
+                    File localFile = new File("app/src/main/resources/assets/images/" + fileGambar);
+                    if (!localFile.exists()) {
+                        localFile = new File("src/main/resources/assets/images/" + fileGambar);
+                    }
+                    if (localFile.exists()) {
+                        ImageIcon icon = new ImageIcon(localFile.getAbsolutePath());
+                        Image img = icon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
+                        btn.setIcon(new ImageIcon(img));
+                    }
                 }
             } catch (Exception e) {
                 System.err.println("[ERROR] Gagal memuat ikon: " + fileGambar);
@@ -265,7 +271,7 @@ public class KiosView extends JFrame {
         add(rightPanel, BorderLayout.EAST);
     }
 
-    // 5. LOAD MENU DATA (Menampilkan Card Menu & Menangani Gambar Belum Ada)
+    // 5. LOAD MENU DATA (Dual-Layer Resource & File Loader)
     private void loadMenuData() {
         panelGridMenu.removeAll();
         List<Menu> listMenu = controller.getMenuBySubCategory(kategoriAktif);
@@ -283,27 +289,51 @@ public class KiosView extends JFrame {
             imagePanel.setBackground(Color.WHITE);
             JLabel labelGambar = new JLabel("", JLabel.CENTER);
 
-            // ========================================================
-            // TRY-CATCH LOAD GAMBAR MENU UTAMA DENGAN FALLBACK TEXT
-            // ========================================================
+            // Sanitasi String Nama Gambar dari Database
+            String imgFileName = m.getImageUrl();
+            if (imgFileName != null) {
+                imgFileName = imgFileName.trim().replace(" ", "_").replace(".webp", ".png");
+            }
+
+            boolean imageLoaded = false;
+
             try {
-                URL imgURL = getClass().getResource("/images/" + m.getImageUrl());
+                // OP SI 1: Coba muat via Classpath (Standard Jar/Bin execution)
+                URL imgURL = getClass().getResource("/assets/images/" + imgFileName);
+                
                 if (imgURL != null) {
                     ImageIcon icon = new ImageIcon(imgURL);
                     Image img = icon.getImage();
                     Image resizedImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
                     labelGambar.setIcon(new ImageIcon(resizedImg));
+                    imageLoaded = true;
                 } else {
-                    // JIKA GAMBAR BELUM ADA, TAMPILKAN PLACEHOLDER TEKS & COMMENT
-                    System.out.println("[INFO] Gambar menu belum ada: src/images/" + m.getImageUrl());
-                    labelGambar.setText("[ No Image ]");
-                    labelGambar.setPreferredSize(new Dimension(100, 100));
-                    labelGambar.setHorizontalAlignment(SwingConstants.CENTER);
-                    labelGambar.setForeground(Color.GRAY);
+                    // OPSI 2: Fallback ke Direct Path jika belum ter-compile ke bin
+                    File fileDirect = new File("app/src/main/resources/assets/images/" + imgFileName);
+                    if (!fileDirect.exists()) {
+                        fileDirect = new File("src/main/resources/assets/images/" + imgFileName);
+                    }
+
+                    if (fileDirect.exists()) {
+                        ImageIcon icon = new ImageIcon(fileDirect.getAbsolutePath());
+                        Image img = icon.getImage();
+                        Image resizedImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                        labelGambar.setIcon(new ImageIcon(resizedImg));
+                        imageLoaded = true;
+                    } else {
+                        System.out.println("[FAIL] File gambar tidak ditemukan: " + fileDirect.getAbsolutePath());
+                    }
                 }
             } catch (Exception e) {
+                imageLoaded = false;
+            }
+
+            // Jika kedua metode di atas gagal, tampilkan teks placeholder
+            if (!imageLoaded) {
                 labelGambar.setText("[ No Image ]");
                 labelGambar.setPreferredSize(new Dimension(100, 100));
+                labelGambar.setHorizontalAlignment(SwingConstants.CENTER);
+                labelGambar.setForeground(Color.GRAY);
             }
 
             imagePanel.add(labelGambar);
