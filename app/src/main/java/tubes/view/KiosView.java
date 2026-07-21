@@ -34,7 +34,7 @@ public class KiosView extends JFrame {
         
         setTitle("McDonald's Self-Service Kiosk");
         setSize(1150, 800); 
-        setMinimumSize(new Dimension(900, 600)); 
+        setMinimumSize(new Dimension(500, 500)); // Bebas dikecilkan sampai ukuran kecil
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 0)); 
@@ -48,7 +48,7 @@ public class KiosView extends JFrame {
         loadMenuData();
         updateCartSidebar();
 
-        // Mengatur ulang jumlah kolom grid saat layar di-resize / full screen
+        // Listener untuk recalculate jumlah kolom saat window di-resize
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -176,37 +176,49 @@ public class KiosView extends JFrame {
         add(sidebarScroll, BorderLayout.WEST);
     }
 
-    // 3. AREA TENGAH: Grid Menu (Teratur, Tidak Melar & Tidak Terus ke Samping)
+    // 3. AREA TENGAH: Responsive Grid (Bisa Atas-Bawah & Kiri-Kanan)
     private void initMenuGrid() {
-        panelGridMenu = new JPanel(new GridLayout(0, 3, 20, 20)); // Default 3 Kolom
+        panelGridMenu = new JPanel(new GridLayout(0, 3, 20, 20)); 
         panelGridMenu.setBackground(BG_LIGHT);
 
-        // Wrapper Panel untuk menahan agar grid berada di pojok kiri atas dan tidak ditarik vertikal
-        JPanel topAlignWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        topAlignWrapper.setBackground(BG_LIGHT);
-        topAlignWrapper.add(panelGridMenu);
+        // KUNCI MULTI-DIRECTION SCROLL: Wrapper GridBagLayout menahan bentuk grid
+        JPanel wrapperPanel = new JPanel(new GridBagLayout());
+        wrapperPanel.setBackground(BG_LIGHT);
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.NORTHWEST; // Selalu rata kiri atas
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.insets = new Insets(15, 15, 15, 15);
+        wrapperPanel.add(panelGridMenu, gbc);
 
-        scrollMenu = new JScrollPane(topAlignWrapper);
-        scrollMenu.setBorder(new EmptyBorder(15, 15, 15, 15));
+        scrollMenu = new JScrollPane(wrapperPanel);
+        scrollMenu.setBorder(null);
         scrollMenu.setBackground(BG_LIGHT);
         scrollMenu.getViewport().setBackground(BG_LIGHT);
+        
+        // Aktifkan scrollbar jika ukuran window tidak muat
+        scrollMenu.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollMenu.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollMenu.getVerticalScrollBar().setUnitIncrement(16); 
+        scrollMenu.getHorizontalScrollBar().setUnitIncrement(16);
         
         add(scrollMenu, BorderLayout.CENTER);
     }
 
-    // Mengalkulasi jumlah kolom berdasarkan lebar viewport agar rapi dan tidak melar
+    // Menghitung jumlah kolom secara fleksibel saat window diperbesar / dikecilkan
     private void updateGridColumns() {
         if (scrollMenu == null || panelGridMenu == null) return;
 
-        int viewWidth = scrollMenu.getViewport().getWidth() - 30; // Kurangi padding
+        int viewWidth = scrollMenu.getViewport().getWidth() - 30; 
         if (viewWidth <= 0) return;
 
-        // Setiap kartu ukurannya fixed 220px + gap 20px = 240px
-        int targetCardWidth = 240; 
-        int cols = Math.max(1, viewWidth / targetCardWidth);
+        // Kartu (220px) + Gap antar kartu (20px) = 240px per kolom
+        int slotWidth = 240; 
+        int cols = Math.max(1, viewWidth / slotWidth);
 
-        // Atur layout grid sesuai kolom yang muat
         panelGridMenu.setLayout(new GridLayout(0, cols, 20, 20));
         panelGridMenu.revalidate();
         panelGridMenu.repaint();
@@ -275,13 +287,13 @@ public class KiosView extends JFrame {
         add(rightPanel, BorderLayout.EAST);
     }
 
-    // 5. LOAD MENU DATA
+    // 5. LOAD MENU DATA (UKURAN KARTU PRESISI 220x260 PX)
     private void loadMenuData() {
         panelGridMenu.removeAll();
         List<Menu> listMenu = controller.getMenuBySubCategory(kategoriAktif);
 
         for (Menu m : listMenu) {
-            // Container Kartu Ukuran Terkunci Rapi (220 x 260 px)
+            // Container Kartu Ukuran Terkunci (220 x 260 px)
             JPanel card = new JPanel(new BorderLayout(0, 5));
             card.setBackground(Color.WHITE);
             
@@ -344,7 +356,7 @@ public class KiosView extends JFrame {
             imagePanel.add(labelGambar);
             card.add(imagePanel, BorderLayout.NORTH);
 
-            // B. CONTAINER TEKS NAMA & HARGA (Tinggi 50px)
+            // B. CONTAINER TEKS NAMA & HARGA
             JPanel infoPanel = new JPanel(new GridLayout(2, 1, 2, 2));
             infoPanel.setBackground(Color.WHITE);
             infoPanel.setPreferredSize(new Dimension(200, 50)); 
