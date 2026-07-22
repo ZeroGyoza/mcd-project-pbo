@@ -5,7 +5,6 @@ import main.java.tubes.model.Menu;
 import main.java.tubes.model.CartItem;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -21,20 +20,18 @@ public class KiosView extends JFrame {
     private JScrollPane scrollMenu;
     private String kategoriAktif = "All";
 
-    // ========================================================
-    // PALET WARNA RESMI MCDONALD'S
-    // ========================================================
-    private final Color MCD_RED = new Color(218, 41, 28);       // Merah Utama McD
-    private final Color MCD_YELLOW = new Color(255, 199, 44);   // Kuning Emas McD
-    private final Color BG_LIGHT = new Color(244, 244, 244);     // Abu-abu terang
-    private final Color TEXT_DARK = new Color(30, 30, 30);       // Teks Gelap
+
+    private final Color MCD_RED = new Color(218, 41, 28);       
+    private final Color MCD_YELLOW = new Color(255, 199, 44);   
+    private final Color BG_LIGHT = new Color(244, 244, 244);    
+    private final Color TEXT_DARK = new Color(30, 30, 30);      
 
     public KiosView() {
         this.controller = new KiosController();
         
         setTitle("McDonald's Self-Service Kiosk");
         setSize(1150, 800); 
-        setMinimumSize(new Dimension(500, 500)); // Bebas dikecilkan sampai ukuran kecil
+        setMinimumSize(new Dimension(500, 500)); 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 0)); 
@@ -48,7 +45,7 @@ public class KiosView extends JFrame {
         loadMenuData();
         updateCartSidebar();
 
-        // Listener untuk recalculate jumlah kolom saat window di-resize
+        // Resizing Listener untuk menghitung Ulang Jumlah Kolom secara Dinamis
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -57,7 +54,6 @@ public class KiosView extends JFrame {
         });
     }
 
-    // 1. HEADER
     private void initHeader() {
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(Color.WHITE);
@@ -74,7 +70,7 @@ public class KiosView extends JFrame {
         add(header, BorderLayout.NORTH);
     }
 
-    // 2. SIDEBAR KIRI: Kategori Menu
+    
     private void initSidebarKategori() {
         JPanel sidebar = new JPanel();
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
@@ -87,7 +83,7 @@ public class KiosView extends JFrame {
         sidebarScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         sidebarScroll.getVerticalScrollBar().setUnitIncrement(12);
 
-        // Tombol Login Admin
+       
         JButton btnAdmin = new JButton("🔒 Login Admin");
         btnAdmin.setPreferredSize(new Dimension(156, 40));
         btnAdmin.setMaximumSize(new Dimension(156, 40));
@@ -176,19 +172,17 @@ public class KiosView extends JFrame {
         add(sidebarScroll, BorderLayout.WEST);
     }
 
-    // 3. AREA TENGAH: Responsive Grid (Bisa Atas-Bawah & Kiri-Kanan)
     private void initMenuGrid() {
         panelGridMenu = new JPanel(new GridLayout(0, 3, 20, 20)); 
         panelGridMenu.setBackground(BG_LIGHT);
 
-        // KUNCI MULTI-DIRECTION SCROLL: Wrapper GridBagLayout menahan bentuk grid
         JPanel wrapperPanel = new JPanel(new GridBagLayout());
         wrapperPanel.setBackground(BG_LIGHT);
         
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.NORTHWEST; // Selalu rata kiri atas
+        gbc.anchor = GridBagConstraints.NORTHWEST; 
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.insets = new Insets(15, 15, 15, 15);
@@ -199,7 +193,6 @@ public class KiosView extends JFrame {
         scrollMenu.setBackground(BG_LIGHT);
         scrollMenu.getViewport().setBackground(BG_LIGHT);
         
-        // Aktifkan scrollbar jika ukuran window tidak muat
         scrollMenu.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollMenu.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollMenu.getVerticalScrollBar().setUnitIncrement(16); 
@@ -208,14 +201,12 @@ public class KiosView extends JFrame {
         add(scrollMenu, BorderLayout.CENTER);
     }
 
-    // Menghitung jumlah kolom secara fleksibel saat window diperbesar / dikecilkan
     private void updateGridColumns() {
         if (scrollMenu == null || panelGridMenu == null) return;
 
         int viewWidth = scrollMenu.getViewport().getWidth() - 30; 
         if (viewWidth <= 0) return;
 
-        // Kartu (220px) + Gap antar kartu (20px) = 240px per kolom
         int slotWidth = 240; 
         int cols = Math.max(1, viewWidth / slotWidth);
 
@@ -224,10 +215,9 @@ public class KiosView extends JFrame {
         panelGridMenu.repaint();
     }
 
-    // 4. SIDEBAR KANAN: Keranjang Belanja
     private void initSidebarRightCart() {
         JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.setPreferredSize(new Dimension(300, 0));
+        rightPanel.setPreferredSize(new Dimension(320, 0)); 
         rightPanel.setBackground(Color.WHITE);
         rightPanel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, new Color(230, 230, 230)));
 
@@ -287,13 +277,11 @@ public class KiosView extends JFrame {
         add(rightPanel, BorderLayout.EAST);
     }
 
-    // 5. LOAD MENU DATA (UKURAN KARTU PRESISI 220x260 PX)
     private void loadMenuData() {
         panelGridMenu.removeAll();
         List<Menu> listMenu = controller.getMenuBySubCategory(kategoriAktif);
 
         for (Menu m : listMenu) {
-            // Container Kartu Ukuran Terkunci (220 x 260 px)
             JPanel card = new JPanel(new BorderLayout(0, 5));
             card.setBackground(Color.WHITE);
             
@@ -307,7 +295,7 @@ public class KiosView extends JFrame {
                 BorderFactory.createEmptyBorder(10, 10, 10, 10)
             ));
 
-            // A. CONTAINER GAMBAR (100x100)
+            // A. GAMBAR (100x100)
             JPanel imagePanel = new JPanel(new GridBagLayout());
             imagePanel.setBackground(Color.WHITE);
             imagePanel.setPreferredSize(new Dimension(100, 100));
@@ -356,7 +344,6 @@ public class KiosView extends JFrame {
             imagePanel.add(labelGambar);
             card.add(imagePanel, BorderLayout.NORTH);
 
-            // B. CONTAINER TEKS NAMA & HARGA
             JPanel infoPanel = new JPanel(new GridLayout(2, 1, 2, 2));
             infoPanel.setBackground(Color.WHITE);
             infoPanel.setPreferredSize(new Dimension(200, 50)); 
@@ -373,7 +360,6 @@ public class KiosView extends JFrame {
             infoPanel.add(labelHarga);
             card.add(infoPanel, BorderLayout.CENTER);
 
-            // C. CONTAINER TOMBOL (- 1 + Add)
             JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 0));
             controlPanel.setBackground(Color.WHITE);
 
@@ -431,33 +417,99 @@ public class KiosView extends JFrame {
         updateGridColumns();
     }
 
-    // 6. UPDATE KERANJANG REAL-TIME
     private void updateCartSidebar() {
         panelIsiKeranjang.removeAll();
         List<CartItem> items = controller.getCart();
 
-        for (CartItem item : items) {
-            JPanel itemRow = new JPanel(new BorderLayout(10, 5));
-            itemRow.setBackground(Color.WHITE);
-            itemRow.setMaximumSize(new Dimension(280, 45));
-            itemRow.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(240, 240, 240)),
-                BorderFactory.createEmptyBorder(6, 5, 6, 5)
-            ));
+        if (items.isEmpty()) {
+            JLabel emptyLabel = new JLabel("Keranjang Kosong", JLabel.CENTER);
+            emptyLabel.setFont(new Font("Segoe UI", Font.ITALIC, 13));
+            emptyLabel.setForeground(Color.GRAY);
+            emptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            panelIsiKeranjang.add(Box.createRigidArea(new Dimension(0, 20)));
+            panelIsiKeranjang.add(emptyLabel);
+        } else {
+            for (CartItem item : items) {
+                JPanel itemRow = new JPanel(new BorderLayout(5, 0));
+                itemRow.setBackground(Color.WHITE);
+                itemRow.setMaximumSize(new Dimension(300, 50));
+                itemRow.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(230, 230, 230)),
+                    BorderFactory.createEmptyBorder(6, 5, 6, 5)
+                ));
 
-            String textNamaQty = item.getQuantity() + "x  " + item.getMenu().getName();
-            JLabel labelDetail = new JLabel(textNamaQty);
-            labelDetail.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-            labelDetail.setForeground(TEXT_DARK);
+                // Informasional
+                JPanel infoPanel = new JPanel(new GridLayout(2, 1, 0, 0));
+                infoPanel.setBackground(Color.WHITE);
 
-            JLabel labelSubTotal = new JLabel("$ " + String.format("%.2f", item.getTotalPrice()));
-            labelSubTotal.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            labelSubTotal.setForeground(MCD_RED);
+                JLabel labelNama = new JLabel(item.getMenu().getName());
+                labelNama.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                labelNama.setForeground(TEXT_DARK);
 
-            itemRow.add(labelDetail, BorderLayout.CENTER);
-            itemRow.add(labelSubTotal, BorderLayout.EAST);
+                JLabel labelSubTotal = new JLabel("$ " + String.format("%.2f", item.getTotalPrice()));
+                labelSubTotal.setFont(new Font("Segoe UI", Font.BOLD, 11));
+                labelSubTotal.setForeground(MCD_RED);
 
-            panelIsiKeranjang.add(itemRow);
+                infoPanel.add(labelNama);
+                infoPanel.add(labelSubTotal);
+
+                JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 3, 0));
+                actionPanel.setBackground(Color.WHITE);
+
+              
+                JButton btnMinusCart = new JButton("-");
+                btnMinusCart.setPreferredSize(new Dimension(24, 24));
+                btnMinusCart.setFont(new Font("Segoe UI", Font.BOLD, 11));
+                btnMinusCart.setMargin(new Insets(0, 0, 0, 0));
+                btnMinusCart.setFocusPainted(false);
+                btnMinusCart.addActionListener(e -> {
+                    if (item.getQuantity() > 1) {
+                        item.setQuantity(item.getQuantity() - 1);
+                    } else {
+                        controller.getCart().remove(item);
+                    }
+                    updateCartSidebar();
+                });
+
+                JLabel labelQtyCart = new JLabel(String.valueOf(item.getQuantity()), JLabel.CENTER);
+                labelQtyCart.setPreferredSize(new Dimension(20, 24));
+                labelQtyCart.setFont(new Font("Segoe UI", Font.BOLD, 12));
+
+                JButton btnPlusCart = new JButton("+");
+                btnPlusCart.setPreferredSize(new Dimension(24, 24));
+                btnPlusCart.setFont(new Font("Segoe UI", Font.BOLD, 11));
+                btnPlusCart.setMargin(new Insets(0, 0, 0, 0));
+                btnPlusCart.setFocusPainted(false);
+                btnPlusCart.addActionListener(e -> {
+                    item.setQuantity(item.getQuantity() + 1);
+                    updateCartSidebar();
+                });
+
+
+                JButton btnDeleteCart = new JButton("✕");
+                btnDeleteCart.setPreferredSize(new Dimension(24, 24));
+                btnDeleteCart.setFont(new Font("Segoe UI", Font.BOLD, 11));
+                btnDeleteCart.setForeground(Color.WHITE);
+                btnDeleteCart.setBackground(MCD_RED);
+                btnDeleteCart.setMargin(new Insets(0, 0, 0, 0));
+                btnDeleteCart.setFocusPainted(false);
+                btnDeleteCart.setToolTipText("Batal / Hapus Item");
+                btnDeleteCart.addActionListener(e -> {
+                    controller.getCart().remove(item);
+                    updateCartSidebar();
+                });
+
+                actionPanel.add(btnMinusCart);
+                actionPanel.add(labelQtyCart);
+                actionPanel.add(btnPlusCart);
+                actionPanel.add(btnDeleteCart);
+
+                itemRow.add(infoPanel, BorderLayout.CENTER);
+                itemRow.add(actionPanel, BorderLayout.EAST);
+
+                panelIsiKeranjang.add(itemRow);
+                panelIsiKeranjang.add(Box.createRigidArea(new Dimension(0, 4)));
+            }
         }
 
         labelTotalHarga.setText("Total: $ " + String.format("%.2f", controller.calculateTotal()));
