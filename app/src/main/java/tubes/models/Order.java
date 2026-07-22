@@ -1,38 +1,39 @@
-package main.java.tubes.model;
+package main.java.tubes.models;
 
+import main.java.tubes.enums.OrderStatus;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Order {
     private int id;
-    private double totalAmount;
-    private String paymentMethod;
-    private String status;
-    private List<CartItem> items;
+    private OrderStatus status;
+    private double totalPrice;
+    private LocalDateTime createdAt;
+    private List<OrderItem> items = new ArrayList<>();
 
-    public Order() {
-        this.items = new ArrayList<>();
-        this.status = "PENDING";
-    }
+    public Order() {}
 
-    public Order(double totalAmount, List<CartItem> items) {
-        this.totalAmount = totalAmount;
-        this.items = items;
-        this.status = "PENDING";
+    public Order(int id, OrderStatus status, double totalPrice, LocalDateTime createdAt) {
+        this.id = id;
+        this.status = status;
+        this.totalPrice = totalPrice;
+        this.createdAt = createdAt;
     }
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
-    public double getTotalAmount() { return totalAmount; }
-    public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount; }
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
 
-    public String getPaymentMethod() { return paymentMethod; }
-    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+    public double getTotalPrice() { return totalPrice; }
+    public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public List<CartItem> getItems() { return items; }
-    public void setItems(List<CartItem> items) { this.items = items; }
+    public List<OrderItem> getItems() { return items; }
+    public void setItems(List<OrderItem> items) { this.items = items; }
 }

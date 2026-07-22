@@ -1,6 +1,6 @@
 package main.java.tubes.service;
 
-import main.java.tubes.model.Order;
+import main.java.tubes.models.Order;
 
 public interface PaymentProcessor {
     /**

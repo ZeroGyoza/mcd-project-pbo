@@ -1,16 +1,16 @@
-package main.java.tubes.view;
+package main.java.tubes.views;
 
-import main.java.tubes.model.CartItem;
-import main.java.tubes.model.Order;
+import main.java.tubes.models.CartItem;
 
 import javax.swing.*;
 import java.awt.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class ReceiptDialog extends JDialog {
 
-    public ReceiptDialog(Frame parent, Order order) {
+    public ReceiptDialog(Frame parent, List<CartItem> items, double totalAmount, String paymentMethod) {
         super(parent, "Struk Pembayaran - McDonald's", true);
         setSize(400, 560);
         setLocationRelativeTo(parent);
@@ -29,8 +29,10 @@ public class ReceiptDialog extends JDialog {
         lblSubHeader.setFont(new Font("Monospaced", Font.PLAIN, 12));
         lblSubHeader.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        // Nomor order sederhana berbasis waktu (belum ada persistensi order ke DB)
+        long orderNumber = System.currentTimeMillis() % 100000;
         String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-        JLabel lblInfo = new JLabel("<html><center>No Order: #" + order.getId() + "<br>Tgl: " + timeStamp + "<br>Metode: " + order.getPaymentMethod() + "</center></html>", JLabel.CENTER);
+        JLabel lblInfo = new JLabel("<html><center>No Order: #" + orderNumber + "<br>Tgl: " + timeStamp + "<br>Metode: " + paymentMethod + "</center></html>", JLabel.CENTER);
         lblInfo.setFont(new Font("Monospaced", Font.PLAIN, 12));
         lblInfo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -46,17 +48,17 @@ public class ReceiptDialog extends JDialog {
         txtItems.setFont(new Font("Monospaced", Font.PLAIN, 12));
 
         StringBuilder sb = new StringBuilder();
-        for (CartItem item : order.getItems()) {
+        for (CartItem item : items) {
             String name = item.getMenu().getName();
             if (name.length() > 16) name = name.substring(0, 13) + "...";
-            
+
             String strPrice = formatNominal(item.getTotalPrice());
             sb.append(String.format("%-16s %2dx  %12s\n", name, item.getQuantity(), strPrice));
         }
 
         sb.append("------------------------------------------\n");
-        
-        String strTotal = formatNominal(order.getTotalAmount());
+
+        String strTotal = formatNominal(totalAmount);
         sb.append(String.format("%-18s    %12s\n", "TOTAL HARGA:", strTotal));
         sb.append("------------------------------------------\n\n");
         sb.append("         PEMBAYARAN BERHASIL / SUKSES\n");

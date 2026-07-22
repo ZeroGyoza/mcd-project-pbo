@@ -1,26 +1,28 @@
-package main.java.tubes.view;
+package main.java.tubes.views;
 
-import main.java.tubes.controller.PaymentController;
-import main.java.tubes.model.Order;
+import main.java.tubes.controllers.PaymentController;
+import main.java.tubes.models.CartItem;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 public class PaymentView extends JDialog {
-    private Order order;
-    private PaymentController paymentController; // Deklarasi variabel controller
+    private List<CartItem> cartItems;
+    private double totalAmount;
+    private PaymentController paymentController;
     private boolean isPaidSuccess = false;
+    private String chosenMethod = null;
 
     // Palet Warna McD
     private final Color MCD_RED = new Color(218, 41, 28);
     private final Color MCD_YELLOW = new Color(255, 199, 44);
 
-    public PaymentView(Frame parent, Order order) {
+    public PaymentView(Frame parent, List<CartItem> cartItems, double totalAmount) {
         super(parent, "Metode Pembayaran - McDonald's", true);
-        this.order = order;
-        
-        // Inisialisasi controller langsung tanpa interface
-        this.paymentController = new PaymentController(); 
+        this.cartItems = cartItems;
+        this.totalAmount = totalAmount;
+        this.paymentController = new PaymentController();
 
         setSize(420, 350);
         setLocationRelativeTo(parent);
@@ -34,7 +36,7 @@ public class PaymentView extends JDialog {
         JPanel header = new JPanel();
         header.setBackground(MCD_RED);
         header.setBorder(BorderFactory.createEmptyBorder(12, 10, 12, 10));
-        
+
         JLabel title = new JLabel("PILIH METODE PEMBAYARAN");
         title.setFont(new Font("Segoe UI", Font.BOLD, 16));
         title.setForeground(Color.WHITE);
@@ -46,7 +48,7 @@ public class PaymentView extends JDialog {
         body.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
         body.setBackground(Color.WHITE);
 
-        JLabel totalLabel = new JLabel("Total Tagihan: $ " + String.format("%.2f", order.getTotalAmount()), JLabel.CENTER);
+        JLabel totalLabel = new JLabel("Total Tagihan: $ " + String.format("%.2f", totalAmount), JLabel.CENTER);
         totalLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         totalLabel.setForeground(new Color(30, 30, 30));
         body.add(totalLabel);
@@ -59,7 +61,6 @@ public class PaymentView extends JDialog {
         styleButton(btnQris);
         styleButton(btnCard);
 
-        // Action Listener tombol pembayaran
         btnCash.addActionListener(e -> processPayment("CASH"));
         btnQris.addActionListener(e -> processPayment("QRIS"));
         btnCard.addActionListener(e -> processPayment("CARD"));
@@ -80,24 +81,24 @@ public class PaymentView extends JDialog {
     }
 
     private void processPayment(String method) {
-        // Panggil method dari controller langsung
-        boolean success = paymentController.processTransaction(order, method);
-        
+        boolean success = paymentController.processTransaction(totalAmount, method);
+
         if (success) {
             isPaidSuccess = true;
+            chosenMethod = method;
             Frame owner = (Frame) getOwner();
-            
+
             // 1. Tutup pop-up pilihan pembayaran
-            dispose(); 
-            
+            dispose();
+
             // 2. Langsung tampilkan dialog Struk Belanja
-            ReceiptDialog receipt = new ReceiptDialog(owner, order);
+            ReceiptDialog receipt = new ReceiptDialog(owner, cartItems, totalAmount, method);
             receipt.setVisible(true);
         } else {
             JOptionPane.showMessageDialog(
-                this, 
-                "Pembayaran / Penyimpanan ke Database Gagal!\nPastikan koneksi PostgreSQL aktif.", 
-                "Error Transaksi", 
+                this,
+                "Pembayaran Gagal! Silakan coba lagi.",
+                "Error Transaksi",
                 JOptionPane.ERROR_MESSAGE
             );
         }
@@ -105,5 +106,9 @@ public class PaymentView extends JDialog {
 
     public boolean isPaidSuccess() {
         return isPaidSuccess;
+    }
+
+    public String getChosenMethod() {
+        return chosenMethod;
     }
 }

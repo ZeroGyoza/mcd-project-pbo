@@ -8,6 +8,6 @@ public class App {
         SwingUtilities.invokeLater(() -> {
             KiosView kiosk = new KiosView();
             kiosk.setVisible(true);
-        }); 
+        });
     }
 }

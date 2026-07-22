@@ -1,7 +1,7 @@
-package main.java.tubes.model;
+package main.java.tubes.models;
 
 import main.java.tubes.utils.Database;
-import main.java.tubes.model.CartItem;
+import main.java.tubes.models.CartItem;
 
 import java.sql.*;
 

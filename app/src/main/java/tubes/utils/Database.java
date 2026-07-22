@@ -5,10 +5,10 @@ import java.sql.SQLException;
 
 public class Database {
     public static final String DATABASE = "mcd_pbo";
-    public static final String PORT = "5433";
+    public static final String PORT = "5432";
     public static final String HOST = "localhost";
     public static final String USER = "postgres";
-    public static final String PASSWORD = "1234";
+    public static final String PASSWORD = "123456";
     public static final String URL = "jdbc:postgresql://" + HOST + ":" + PORT + "/" + DATABASE;
 
     public static Connection connect() {

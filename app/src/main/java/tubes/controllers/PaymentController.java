@@ -1,24 +1,21 @@
-package main.java.tubes.controller;
+package main.java.tubes.controllers;
 
-import main.java.tubes.model.Order;
-import main.java.tubes.repositories.OrderRepository;
-import main.java.tubes.service.PaymentProcessor;
+import main.java.tubes.service.PaymentService;
 
-public class PaymentController implements PaymentProcessor {
-    private OrderRepository orderRepository;
+public class PaymentController {
+    private PaymentService paymentService;
 
     public PaymentController() {
-        this.orderRepository = new OrderRepository();
+        this.paymentService = new PaymentService();
     }
 
-    @Override
-    public boolean processTransaction(Order order, String method) {
-        if (order == null || order.getItems().isEmpty()) {
-            return false;
-        }
-        order.setPaymentMethod(method);
-        order.setStatus("SUCCESS");
-        
-        return orderRepository.saveOrder(order);
+    /**
+     * Memproses pembayaran lewat strategy PaymentService (Cash/QRIS/Card).
+     * @param totalAmount total tagihan keranjang
+     * @param method metode pembayaran: "CASH", "QRIS", atau "CARD"
+     * @return true jika pembayaran berhasil
+     */
+    public boolean processTransaction(double totalAmount, String method) {
+        return paymentService.executePayment(method, totalAmount);
     }
 }
