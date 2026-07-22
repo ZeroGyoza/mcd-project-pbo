@@ -1,7 +1,3 @@
--- ==========================================================
--- Jalankan ini di database mcd_pbo (via psql atau pgAdmin Query Tool)
--- ==========================================================
-
 -- 1. Tabel akun staff (admin & cashier)
 CREATE TABLE IF NOT EXISTS accounts (
     id SERIAL PRIMARY KEY,
@@ -46,12 +42,10 @@ INSERT INTO accounts (username, password, role) VALUES
 ('cashier', 'b4c94003c562bb0d89535eca77f07284fe560fd48a7cc1ed99f0a56263d616ba', 'cashier')
 ON CONFLICT (username) DO NOTHING;
 
--- contoh kategori (sesuaikan sama sub_category yang udah kamu pakai di tabel menus)
 INSERT INTO categories (name) VALUES
 ('Burger'), ('Ayam'), ('Minuman'), ('Paket Hebat')
 ON CONFLICT (name) DO NOTHING;
 
--- contoh order dummy biar tab Orders ga kosong pas demo
 INSERT INTO orders (status, total_price) VALUES
 ('paid', 55000),
 ('finished', 32000);
