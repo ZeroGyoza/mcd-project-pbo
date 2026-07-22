@@ -1,7 +1,10 @@
 package main.java.tubes.views;
 import main.java.tubes.controllers.KiosController;
 import main.java.tubes.models.CartItem;
+import main.java.tubes.models.Category;
 import main.java.tubes.models.Menu;
+import main.java.tubes.repositories.CategoryRepository;
+import main.java.tubes.repositories.CategoryRepositoryImpl;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -14,7 +17,9 @@ import java.util.List;
 
 public class KiosView extends JFrame {
     private KiosController controller;
+    private CategoryRepository categoryRepo;
     private JPanel panelGridMenu;
+    private JPanel panelSidebarKategori;
     private JPanel panelIsiKeranjang;
     private JLabel labelTotalHarga;
     private JScrollPane scrollMenu;
@@ -30,6 +35,7 @@ public class KiosView extends JFrame {
 
     public KiosView() {
         this.controller = new KiosController();
+        this.categoryRepo = new CategoryRepositoryImpl();
         
         setTitle("McDonald's Self-Service Kiosk");
         setSize(1150, 800); 
@@ -73,106 +79,112 @@ public class KiosView extends JFrame {
         add(header, BorderLayout.NORTH);
     }
 
-    // 2. SIDEBAR KIRI: Kategori Menu
+    // 2. SIDEBAR KIRI: Kategori Menu (diambil langsung dari tabel categories di DB)
     private void initSidebarKategori() {
-        JPanel sidebar = new JPanel();
-        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
-        sidebar.setBackground(MCD_RED); 
-        sidebar.setBorder(BorderFactory.createEmptyBorder(15, 12, 15, 12));
-        sidebar.setPreferredSize(new Dimension(180, 0));
+        panelSidebarKategori = new JPanel();
+        panelSidebarKategori.setLayout(new BoxLayout(panelSidebarKategori, BoxLayout.Y_AXIS));
+        panelSidebarKategori.setBackground(MCD_RED);
+        panelSidebarKategori.setBorder(BorderFactory.createEmptyBorder(15, 12, 15, 12));
+        panelSidebarKategori.setPreferredSize(new Dimension(180, 0));
 
-        JScrollPane sidebarScroll = new JScrollPane(sidebar);
+        JScrollPane sidebarScroll = new JScrollPane(panelSidebarKategori);
         sidebarScroll.setBorder(null);
         sidebarScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         sidebarScroll.getVerticalScrollBar().setUnitIncrement(12);
 
-        // Tombol Login Admin
-        JButton btnAdmin = new JButton("🔒 Login Admin");
-        btnAdmin.setPreferredSize(new Dimension(156, 40));
-        btnAdmin.setMaximumSize(new Dimension(156, 40));
-        btnAdmin.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnAdmin.setFocusPainted(false);
-        btnAdmin.setBackground(new Color(160, 20, 15)); 
-        btnAdmin.setForeground(Color.WHITE);
-        btnAdmin.setBorder(BorderFactory.createLineBorder(MCD_YELLOW, 1));
-        btnAdmin.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        btnAdmin.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, 
-                "Fitur Login Admin sedang diintegrasikan oleh tim pengembang.", 
-                "Info Kiosk", JOptionPane.INFORMATION_MESSAGE);
-        });
-        sidebar.add(btnAdmin);
-        
-        sidebar.add(Box.createRigidArea(new Dimension(0, 12)));
-        JSeparator separator = new JSeparator(JSeparator.HORIZONTAL);
-        separator.setMaximumSize(new Dimension(156, 1));
-        separator.setForeground(MCD_YELLOW);
-        sidebar.add(separator);
-        sidebar.add(Box.createRigidArea(new Dimension(0, 12)));
+        add(sidebarScroll, BorderLayout.WEST);
 
-        String[][] kategoriData = {
-            {"All", "all.png"},
-            {"Burger", "burger.png"},
-            {"Chicken", "chicken.png"},
-            {"Sides", "sides.png"},
-            {"Dessert", "dessert.png"},
-            {"Beverage", "beverage.png"},
-            {"McCafé", "mccafe.png"},
-            {"Happy Meal", "happymeal.png"},
-            {"Combo", "combo.png"}
-        };
+        loadSidebarKategori();
+    }
 
-        for (String[] kat : kategoriData) {
-            String namaKategori = kat[0];
-            String fileGambar = kat[1];
+    // Mengisi ulang tombol kategori sidebar dari database (dipanggil saat init & bisa dipanggil ulang
+    // setelah admin menambah/mengubah/menghapus kategori supaya sidebar langsung ikut update)
+    private void loadSidebarKategori() {
+        panelSidebarKategori.removeAll();
 
-            JButton btn = new JButton(namaKategori);
-            btn.setPreferredSize(new Dimension(156, 48));
-            btn.setMaximumSize(new Dimension(156, 48));
-            btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            btn.setFocusPainted(false);
-            btn.setBackground(Color.WHITE);
-            btn.setForeground(TEXT_DARK);
-            btn.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1));
-            btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // "All" selalu ada di paling atas, di luar data kategori dari DB
+        panelSidebarKategori.add(buatTombolKategori("All", "all.png"));
+        panelSidebarKategori.add(Box.createRigidArea(new Dimension(0, 8)));
 
-            btn.setHorizontalAlignment(SwingConstants.CENTER);
-            btn.setHorizontalTextPosition(SwingConstants.RIGHT); 
-            btn.setVerticalTextPosition(SwingConstants.CENTER);
-            btn.setIconTextGap(8);
-
-            try {
-                URL imgURL = getClass().getResource("/assets/images/" + fileGambar);
-                if (imgURL != null) {
-                    ImageIcon icon = new ImageIcon(imgURL);
-                    Image img = icon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
-                    btn.setIcon(new ImageIcon(img));
-                } else {
-                    File localFile = new File("app/src/main/resources/assets/images/" + fileGambar);
-                    if (!localFile.exists()) {
-                        localFile = new File("src/main/resources/assets/images/" + fileGambar);
-                    }
-                    if (localFile.exists()) {
-                        ImageIcon icon = new ImageIcon(localFile.getAbsolutePath());
-                        Image img = icon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
-                        btn.setIcon(new ImageIcon(img));
-                    }
-                }
-            } catch (Exception e) {
-                System.err.println("[ERROR] Gagal memuat ikon: " + fileGambar);
-            }
-            
-            btn.addActionListener(e -> {
-                kategoriAktif = namaKategori;
-                loadMenuData();
-            });
-            
-            sidebar.add(btn);
-            sidebar.add(Box.createRigidArea(new Dimension(0, 8)));
+        List<Category> daftarKategori;
+        try {
+            daftarKategori = categoryRepo.findAll();
+        } catch (Exception e) {
+            daftarKategori = new java.util.ArrayList<>();
+            System.err.println("[ERROR] Gagal memuat kategori: " + e.getMessage());
         }
 
-        add(sidebarScroll, BorderLayout.WEST);
+        for (Category kat : daftarKategori) {
+            String namaKategori = kat.getName();
+            panelSidebarKategori.add(buatTombolKategori(namaKategori, getIconFileForKategori(namaKategori)));
+            panelSidebarKategori.add(Box.createRigidArea(new Dimension(0, 8)));
+        }
+
+        panelSidebarKategori.revalidate();
+        panelSidebarKategori.repaint();
+    }
+
+    // Membuat satu tombol kategori (dipakai baik untuk "All" maupun kategori dari DB)
+    private JButton buatTombolKategori(String namaKategori, String fileGambar) {
+        JButton btn = new JButton(namaKategori);
+        btn.setPreferredSize(new Dimension(156, 48));
+        btn.setMaximumSize(new Dimension(156, 48));
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setFocusPainted(false);
+        btn.setBackground(Color.WHITE);
+        btn.setForeground(TEXT_DARK);
+        btn.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1));
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        btn.setHorizontalAlignment(SwingConstants.CENTER);
+        btn.setHorizontalTextPosition(SwingConstants.RIGHT);
+        btn.setVerticalTextPosition(SwingConstants.CENTER);
+        btn.setIconTextGap(8);
+
+        try {
+            URL imgURL = getClass().getResource("/assets/images/" + fileGambar);
+            if (imgURL != null) {
+                ImageIcon icon = new ImageIcon(imgURL);
+                Image img = icon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
+                btn.setIcon(new ImageIcon(img));
+            } else {
+                File localFile = new File("app/src/main/resources/assets/images/" + fileGambar);
+                if (!localFile.exists()) {
+                    localFile = new File("src/main/resources/assets/images/" + fileGambar);
+                }
+                if (localFile.exists()) {
+                    ImageIcon icon = new ImageIcon(localFile.getAbsolutePath());
+                    Image img = icon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
+                    btn.setIcon(new ImageIcon(img));
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("[ERROR] Gagal memuat ikon: " + fileGambar);
+        }
+
+        btn.addActionListener(e -> {
+            kategoriAktif = namaKategori;
+            loadMenuData();
+        });
+
+        return btn;
+    }
+
+    // Kategori di DB cuma nyimpen nama, jadi ikonnya dicocokkan dari nama kategori.
+    // Kalau nama kategori baru belum ada di daftar ini, otomatis fallback ke ikon default.
+    private String getIconFileForKategori(String namaKategori) {
+        switch (namaKategori.trim().toLowerCase()) {
+            case "burger": return "burger.png";
+            case "chicken": case "ayam": return "chicken.png";
+            case "sides": return "sides.png";
+            case "dessert": return "dessert.png";
+            case "beverage": case "minuman": return "beverage.png";
+            case "mccafé": case "mccafe": return "mccafe.png";
+            case "happy meal": return "happymeal.png";
+            case "combo": return "combo.png";
+            case "paket hebat": return "combo.png";
+            default: return "all.png";
+        }
     }
 
     // 3. AREA TENGAH: Grid Menu (Teratur, Tidak Melar & Tidak Terus ke Samping)

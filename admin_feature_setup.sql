@@ -32,6 +32,15 @@ CREATE TABLE IF NOT EXISTS order_items (
     quantity INT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS menus (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    price NUMERIC(10, 2) NOT NULL,
+    type VARCHAR(20) NOT NULL CHECK (type IN ('FOOD', 'DRINK', 'PAKET')),
+    sub_category VARCHAR(50) NOT NULL,
+    image_url VARCHAR(255)
+);
+
 INSERT INTO accounts (username, password, role) VALUES
 ('admin',   '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'admin'),
 ('cashier', 'b4c94003c562bb0d89535eca77f07284fe560fd48a7cc1ed99f0a56263d616ba', 'cashier')
@@ -51,3 +60,8 @@ INSERT INTO order_items (order_id, menu_name, price, quantity) VALUES
 (1, 'Big Mac', 45000, 1),
 (1, 'Coca Cola', 10000, 1),
 (2, 'McSpaghetti', 32000, 1);
+
+INSERT INTO menus (name, price, type, sub_category, image_url) VALUES
+('Big Mac', 45000, 'FOOD', 'Burger', 'bigmac.png'),
+('Coca Cola', 10000, 'DRINK', 'Minuman', 'coca_cola.png'),
+('McSpaghetti', 32000, 'FOOD', 'Paket Hebat', 'mcspaghetti.png');
