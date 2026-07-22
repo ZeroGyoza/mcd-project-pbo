@@ -1,6 +1,6 @@
-package main.java.tubes.controller;
-
-import main.java.tubes.model.*;
+package main.java.tubes.controllers;
+import main.java.tubes.models.CartItem;
+import main.java.tubes.models.Menu;
 import main.java.tubes.repositories.MenuRepository;
 import java.util.ArrayList;
 import java.util.List;

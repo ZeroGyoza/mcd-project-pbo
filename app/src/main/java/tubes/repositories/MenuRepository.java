@@ -1,6 +1,5 @@
 package main.java.tubes.repositories;
-
-import main.java.tubes.model.*;
+import main.java.tubes.models.*;
 import main.java.tubes.utils.Database;
 import java.sql.*;
 import java.util.ArrayList;

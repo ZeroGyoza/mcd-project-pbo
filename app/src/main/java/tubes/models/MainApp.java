@@ -1,6 +1,7 @@
-package main.java.tubes.model;
-import main.java.tubes.view.KiosView;
+package main.java.tubes.models;
 import javax.swing.SwingUtilities;
+
+import main.java.tubes.views.KiosView;
 
 public class MainApp {
     public static void main(String[] args) {

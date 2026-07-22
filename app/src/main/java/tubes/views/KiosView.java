@@ -1,8 +1,7 @@
-package main.java.tubes.view;
-
-import main.java.tubes.controller.KiosController;
-import main.java.tubes.model.Menu;
-import main.java.tubes.model.CartItem;
+package main.java.tubes.views;
+import main.java.tubes.controllers.KiosController;
+import main.java.tubes.models.CartItem;
+import main.java.tubes.models.Menu;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

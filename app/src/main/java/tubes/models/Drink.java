@@ -1,4 +1,4 @@
-package main.java.tubes.model;
+package main.java.tubes.models;
 
 import main.java.tubes.enums.*;
 
